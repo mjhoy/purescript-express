@@ -6,6 +6,7 @@ module Node.Express.App
     , use, useExternal, useAt, useAtExternal, useOnParam, useOnError
     , getProp, setProp
     , http, get, post, put, delete, all
+    , httpMw, getMw, postMw, putMw, deleteMw, allMw
     ) where
 
 import Prelude hiding (apply)
@@ -172,25 +173,50 @@ http :: forall e r. (RoutePattern r) => Method -> r -> Handler e -> App e
 http method route handler = AppM \app ->
     runFn4 _http app (show method) (toForeign route) $ runHandlerM handler
 
+-- | Bind specified handler to handle request matching route and method.
+httpMw :: forall e r. (RoutePattern r) => Method -> r -> Array (Handler e) -> App e
+httpMw method route handlers = AppM \app ->
+    runFn4 _httpMw app (show method) (toForeign route) $ map runHandlerM handlers
+
 -- | Shortcut for `http GET`.
 get :: forall e r. (RoutePattern r) => r -> Handler e -> App e
 get = http GET
+
+-- | Shortcut for `http GET` with multiple middleware handlers.
+getMw :: forall e r. (RoutePattern r) => r -> Array (Handler e) -> App e
+getMw = httpMw GET
 
 -- | Shortcut for `http POST`.
 post :: forall e r. (RoutePattern r) => r -> Handler e -> App e
 post = http POST
 
+-- | Shortcut for `http POST` with multiple middleware handlers.
+postMw :: forall e r. (RoutePattern r) => r -> Array (Handler e) -> App e
+postMw = httpMw POST
+
 -- | Shortcut for `http PUT`.
 put :: forall e r. (RoutePattern r) => r -> Handler e -> App e
 put = http PUT
+
+-- | Shortcut for `http PUT` with multiple middleware handlers.
+putMw :: forall e r. (RoutePattern r) => r -> Array (Handler e) -> App e
+putMw = httpMw PUT
 
 -- | Shortcut for `http DELETE`.
 delete :: forall e r. (RoutePattern r) => r -> Handler e -> App e
 delete = http DELETE
 
+-- | Shortcut for `http DELETE` with multiple middleware handlers.
+deleteMw :: forall e r. (RoutePattern r) => r -> Array (Handler e) -> App e
+deleteMw = httpMw DELETE
+
 -- | Shortcut for `http ALL` (match on any http method).
 all :: forall e r. (RoutePattern r) => r -> Handler e -> App e
 all = http ALL
+
+-- | Shortcut for `http ALL` (match on any http method) with multiple middleware handlers.
+allMw :: forall e r. (RoutePattern r) => r -> Array (Handler e) -> App e
+allMw = httpMw ALL
 
 foreign import mkApplication :: forall e. ExpressM e Application
 
@@ -203,6 +229,8 @@ foreign import _http :: forall e. Fn4 Application String Foreign (HandlerFn e) (
 foreign import _httpServer :: forall e1. Application -> ExpressM e1 Server
 
 foreign import _httpsServer :: forall e1. Application -> ExpressM e1 Server
+
+foreign import _httpMw :: forall e. Fn4 Application String Foreign (Array (HandlerFn e)) (Eff (express :: EXPRESS | e) Unit)
 
 foreign import _listenHttp :: forall e1 e2. Application -> Int -> (Event -> Eff e1 Unit) -> ExpressM e2 Server
 
