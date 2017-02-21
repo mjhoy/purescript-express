@@ -2,7 +2,7 @@ module Node.Express.App
     ( AppM()
     , App()
     , listenHttp, listenHttps, apply
-    , use, useExternal, useAt, useOnParam, useOnError
+    , use, useExternal, useExternalWithApp, useAt, useOnParam, useOnError
     , getProp, setProp
     , http, get, post, put, delete, all
     ) where
@@ -15,6 +15,7 @@ import Data.Foreign (Foreign, toForeign)
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Class (class MonadEff, liftEff)
 import Control.Monad.Eff.Exception (Error)
+import Control.Monad.Except (runExcept)
 import Node.HTTP (Server ())
 
 import Node.Express.Types (class RoutePattern, EXPRESS, Application,
@@ -87,6 +88,13 @@ useExternal :: forall e. Fn3 Request Response (ExpressM e Unit) (ExpressM e Unit
 useExternal fn = AppM \app ->
     runFn2 _useExternal app fn
 
+-- | Use any function as middleware, passing the current app to
+-- | be decorated by the middleware.
+useExternalWithApp :: forall e.
+ (Application -> Fn3 Request Response (ExpressM e Unit) (ExpressM e Unit)) -> App e
+useExternalWithApp fn = AppM \app ->
+   runFn2 _useExternal app (fn app)
+
 -- | Use specified middleware only on requests matching path.
 useAt :: forall e. Path -> Handler e -> App e
 useAt route middleware = AppM \app ->
@@ -107,7 +115,7 @@ useOnError handler = AppM \app ->
 -- | See http://expressjs.com/4x/api.html#app-settings
 getProp :: forall e a. (IsForeign a) => String -> AppM (express :: EXPRESS | e) (Maybe a)
 getProp name = AppM \app ->
-    liftEff $ liftM1 (eitherToMaybe <<< read) (runFn2 _getProp app name)
+    liftEff $ liftM1 (eitherToMaybe <<< runExcept <<< read) (runFn2 _getProp app name)
 
 -- | Set application property.
 -- | See http://expressjs.com/4x/api.html#app-settings
