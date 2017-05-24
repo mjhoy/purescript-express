@@ -78,8 +78,11 @@ newtype CookieOptions = CookieOptions
     { maxAge :: Int
     , signed :: Boolean
     , path :: String
+    , domain :: String
+    , httpOnly :: Boolean
+    , secure :: Boolean
     }
 
 instance defaultCookieOptions :: Default CookieOptions where
-    def = CookieOptions { maxAge: oneYear, signed: false, path: "/" }
+    def = CookieOptions { maxAge: oneYear, signed: false, path: "/", domain: ".example.com", httpOnly: true, secure: false  }
       where oneYear = 365 * 24 * 60 * 60 * 1000
