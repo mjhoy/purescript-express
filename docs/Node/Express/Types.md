@@ -52,7 +52,7 @@ data Protocol
 ##### Instances
 ``` purescript
 Show Protocol
-IsForeign Protocol
+Decode Protocol
 ```
 
 #### `Method`
@@ -73,7 +73,7 @@ data Method
 ##### Instances
 ``` purescript
 Show Method
-IsForeign Method
+Decode Method
 ```
 
 #### `Port`

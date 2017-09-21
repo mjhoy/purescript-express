@@ -42,7 +42,7 @@ queryString = sepBy param (string "&")
 param :: Parser String Param
 param = do
     name <- liftM1 (decode <<< fromCharArray) $ some $ satisfy (\s -> s /= '=')
-    string "="
+    _ <- string "="
     val  <- liftM1 (decode <<< fromCharArray) $ many $ satisfy (\s -> s /= '&')
     pure $ Param name val
 

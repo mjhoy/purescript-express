@@ -11,7 +11,7 @@ Set status code.
 #### `getResponseHeader`
 
 ``` purescript
-getResponseHeader :: forall e a. IsForeign a => String -> HandlerM (express :: EXPRESS | e) (Maybe a)
+getResponseHeader :: forall e a. Decode a => String -> HandlerM (express :: EXPRESS | e) (Maybe a)
 ```
 
 Return response header value.
